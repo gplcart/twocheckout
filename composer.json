@@ -1,7 +1,7 @@
 {
     "name": "gplcart/twocheckout",
     "type": "gplcart-module",
-    "description": "Stripe payment gateway for GPL Cart",
+    "description": "2 Checkout payment gateway for GPL Cart",
     "keywords": ["gplcart", "ecommerce", "shopping cart", "gplcart-module", "omnipay", "gplcart-payment-module"],
     "homepage": "https://github.com/gplcart/twocheckout",
     "license": "GPL-3.0",

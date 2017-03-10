@@ -275,6 +275,7 @@ class Twocheckout
 
             $this->gateway->setCart(array(array(
                     'quantity' => 1,
+                    'type' => 'product',
                     'price' => $this->data_order['total_formatted_number'],
                     'name' => $this->language->text('Order #@num', array('@num' => $this->data_order['order_id']))
             )));

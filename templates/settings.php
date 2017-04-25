@@ -6,7 +6,7 @@
  * @license https://www.gnu.org/licenses/gpl-3.0.en.html GNU General Public License 3.0
  */
 ?>
-<form method="post" enctype="multipart/form-data" class="form-horizontal">
+<form method="post" class="form-horizontal">
   <input type="hidden" name="token" value="<?php echo $this->prop('token'); ?>">
   <div class="panel panel-default">
     <div class="panel-body">

@@ -1,0 +1,19 @@
+{
+    "core": "1.x",
+    "name": "2 Checkout",
+    "version": "1.0.0-alfa.1",
+    "description": "Provides 2 Checkout payment method",
+    "author": "Iurii Makukh <gplcart.software@gmail.com>",
+    "license": "GNU General Public License 3.0",
+    "dependencies": {
+        "omnipay_library": ">= 1.0"
+    },
+    "configure": "admin/module/settings/twocheckout",
+    "settings": {
+        "test": true,
+        "status": true,
+        "order_status_success": "processing",
+        "accountNumber": "",
+        "secretWord": ""
+    }
+}

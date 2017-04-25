@@ -87,7 +87,7 @@ class Settings extends BackendController
     {
         $this->setSubmitted('settings');
         $this->setSubmittedBool('status');
-        return !$this->hasErrors('settings');
+        return !$this->hasErrors();
     }
 
     /**

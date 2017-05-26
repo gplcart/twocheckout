@@ -51,7 +51,7 @@
         <div class="col-md-4">
           <select name="settings[order_status_success]" class="form-control">
             <?php foreach ($statuses as $status_id => $status_name) { ?>
-            <option value="<?php echo $this->escape($status_id); ?>"<?php echo isset($settings['order_status_success']) && $settings['order_status_success'] == $status_id ? ' selected' : ''; ?>><?php echo $this->escape($status_name); ?></option>
+            <option value="<?php echo $this->e($status_id); ?>"<?php echo isset($settings['order_status_success']) && $settings['order_status_success'] == $status_id ? ' selected' : ''; ?>><?php echo $this->e($status_name); ?></option>
             <?php } ?>
           </select>
           <div class="help-block">
@@ -62,7 +62,7 @@
       <div class="form-group">
         <label class="col-md-2 control-label"><?php echo $this->text('Account ID'); ?></label>
         <div class="col-md-4">
-          <input name="settings[accountNumber]" class="form-control" value="<?php echo isset($settings['accountNumber']) ? $this->escape($settings['accountNumber']) : ''; ?>">
+          <input name="settings[accountNumber]" class="form-control" value="<?php echo isset($settings['accountNumber']) ? $this->e($settings['accountNumber']) : ''; ?>">
           <div class="help-block">
               <?php echo $this->text('The account ID you got on 2checkout.com'); ?>
           </div>
@@ -71,7 +71,7 @@
       <div class="form-group">
         <label class="col-md-2 control-label"><?php echo $this->text('Secret'); ?></label>
         <div class="col-md-4">
-          <input name="settings[secretWord]" class="form-control" value="<?php echo isset($settings['secretWord']) ? $this->escape($settings['secretWord']) : ''; ?>">
+          <input name="settings[secretWord]" class="form-control" value="<?php echo isset($settings['secretWord']) ? $this->e($settings['secretWord']) : ''; ?>">
           <div class="help-block">
             <?php echo $this->text('The secret word you got in your account settings under "Site Management" section on 2checkout.com'); ?>
           </div>

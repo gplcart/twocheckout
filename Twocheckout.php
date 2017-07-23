@@ -105,14 +105,16 @@ class Twocheckout extends Module
      */
     protected function getGatewayInstance()
     {
-        /* @var $object \gplcart\modules\omnipay_library\OmnipayLibrary */
-        $object = $this->getInstance('gplcart\\modules\\omnipay_library\\OmnipayLibrary');
+        /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
+        $model = $this->getInstance('gplcart\\modules\\omnipay_library\\OmnipayLibrary');
 
-        if (!$object instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
+        $instance = $model->getGatewayInstance('TwoCheckoutPlus');
+
+        if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
             throw new \InvalidArgumentException('Object is not instance of Omnipay\TwoCheckoutPlus\Gateway');
         }
 
-        return $object->getGatewayInstance('TwoCheckoutPlus');
+        return $instance;
     }
 
     /**

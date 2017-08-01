@@ -2,15 +2,14 @@
 
 /**
  * @package 2 Checkout
- * @author Iurii Makukh <gplcart.software@gmail.com> 
- * @copyright Copyright (c) 2017, Iurii Makukh <gplcart.software@gmail.com> 
- * @license https://www.gnu.org/licenses/gpl-3.0.en.html GNU General Public License 3.0 
+ * @author Iurii Makukh <gplcart.software@gmail.com>
+ * @copyright Copyright (c) 2017, Iurii Makukh <gplcart.software@gmail.com>
+ * @license https://www.gnu.org/licenses/gpl-3.0.en.html GNU General Public License 3.0
  */
 
 namespace gplcart\modules\twocheckout;
 
 use gplcart\core\Module;
-use gplcart\core\models\Language as LanguageModel;
 
 /**
  * Main class for 2 Checkout module
@@ -60,7 +59,7 @@ class Twocheckout extends Module
 
     /**
      * Implements hook "route.list"
-     * @param array $routes 
+     * @param array $routes
      */
     public function hookRouteList(array &$routes)
     {
@@ -106,7 +105,7 @@ class Twocheckout extends Module
     protected function getGatewayInstance()
     {
         /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
-        $model = $this->getInstance('gplcart\\modules\\omnipay_library\\OmnipayLibrary');
+        $model = $this->getInstance('omnipay_library');
 
         $instance = $model->getGatewayInstance('TwoCheckoutPlus');
 
@@ -119,7 +118,7 @@ class Twocheckout extends Module
 
     /**
      * Implements hook "payment.methods"
-     * @param array $methods 
+     * @param array $methods
      */
     public function hookPaymentMethods(array &$methods)
     {
@@ -285,7 +284,7 @@ class Twocheckout extends Module
             '@status' => $this->order->getStatusName($this->data_order['status'])
         );
 
-        $message = $this->controller->text('Thank you! Payment has been made. Order #@num, status: @status', $vars);
+        $message = $this->language->text('Thank you! Payment has been made. Order #@num, status: @status', $vars);
         $this->controller->redirect('/', $message, 'success', true);
     }
 
@@ -314,7 +313,7 @@ class Twocheckout extends Module
         );
 
         /* @var $object \gplcart\core\models\Transaction */
-        $object = $this->getInstance('gplcart\\core\\models\\Transaction');
+        $object = $this->getModel('Transaction');
         return $object->add($transaction);
     }
 

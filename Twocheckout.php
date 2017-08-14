@@ -36,25 +36,17 @@ class Twocheckout extends Module
     protected $controller;
 
     /**
-     * Language model instance
-     * @var \gplcart\core\models\Language $language
-     */
-    protected $language;
-
-    /**
      * Order model instance
      * @var \gplcart\core\models\Order $order
      */
     protected $order;
 
     /**
-     * @param LanguageModel $language
+     * Constructor
      */
-    public function __construct(LanguageModel $language)
+    public function __construct()
     {
         parent::__construct();
-
-        $this->language = $language;
     }
 
     /**
@@ -106,7 +98,7 @@ class Twocheckout extends Module
     {
         /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
         $model = $this->getInstance('omnipay_library');
-
+        
         $instance = $model->getGatewayInstance('TwoCheckoutPlus');
 
         if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
@@ -126,7 +118,7 @@ class Twocheckout extends Module
             'module' => 'twocheckout',
             'image' => 'image/icon.png',
             'status' => $this->getStatus(),
-            'title' => $this->language->text('2 Checkout'),
+            'title' => $this->getLanguage()->text('2 Checkout'),
             'template' => array('complete' => 'pay')
         );
     }
@@ -223,7 +215,7 @@ class Twocheckout extends Module
                     'quantity' => 1,
                     'type' => 'product',
                     'price' => $this->data_order['total_formatted_number'],
-                    'name' => $this->language->text('Order #@num', array('@num' => $this->data_order['order_id']))
+                    'name' => $this->controller->text('Order #@num', array('@num' => $this->data_order['order_id']))
             )));
 
             $this->response = $gateway->purchase($this->getPurchaseParams())->send();
@@ -284,7 +276,7 @@ class Twocheckout extends Module
             '@status' => $this->order->getStatusName($this->data_order['status'])
         );
 
-        $message = $this->language->text('Thank you! Payment has been made. Order #@num, status: @status', $vars);
+        $message = $this->controller->text('Thank you! Payment has been made. Order #@num, status: @status', $vars);
         $this->controller->redirect('/', $message, 'success', true);
     }
 

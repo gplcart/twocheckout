@@ -1,8 +1,8 @@
 {
     "core": "1.x",
-    "name": "2 Checkout",
+    "name": "2Checkout",
     "version": "1.0.0-alfa.1",
-    "description": "Provides 2 Checkout payment method",
+    "description": "Adds 2Checkout payment method. Based on Omnipay library",
     "author": "Iurii Makukh <gplcart.software@gmail.com>",
     "license": "GNU General Public License 3.0",
     "dependencies": {

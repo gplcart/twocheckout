@@ -53,7 +53,7 @@ class Settings extends BackendController
         $this->setBreadcrumbEditSettings();
 
         $this->setData('statuses', $this->order->getStatuses());
-        $this->setData('settings', $this->config->module('twocheckout'));
+        $this->setData('settings', $this->config->getFromModule('twocheckout'));
 
         $this->submitSettings();
         $this->outputEditSettings();

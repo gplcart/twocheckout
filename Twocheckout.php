@@ -9,7 +9,8 @@
 
 namespace gplcart\modules\twocheckout;
 
-use gplcart\core\Module;
+use gplcart\core\Module,
+    gplcart\core\Config;
 
 /**
  * Main class for 2 Checkout module
@@ -42,11 +43,11 @@ class Twocheckout extends Module
     protected $order;
 
     /**
-     * Constructor
+     * @param Config $config
      */
-    public function __construct()
+    public function __construct(Config $config)
     {
-        parent::__construct();
+        parent::__construct($config);
     }
 
     /**
@@ -98,7 +99,7 @@ class Twocheckout extends Module
     {
         /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
         $model = $this->getInstance('omnipay_library');
-        
+
         $instance = $model->getGatewayInstance('TwoCheckoutPlus');
 
         if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
@@ -131,7 +132,7 @@ class Twocheckout extends Module
      */
     protected function setting($name, $default = null)
     {
-        return $this->config->module('twocheckout', $name, $default);
+        return $this->config->getFromModule('twocheckout', $name, $default);
     }
 
     /**

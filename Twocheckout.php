@@ -50,6 +50,8 @@ class Twocheckout extends Module
         parent::__construct($config);
     }
 
+    /* ------------------------- Hooks ------------------------- */
+
     /**
      * Implements hook "route.list"
      * @param array $routes
@@ -91,25 +93,6 @@ class Twocheckout extends Module
     }
 
     /**
-     * Get gateway instance
-     * @return object
-     * @throws \InvalidArgumentException
-     */
-    protected function getGatewayInstance()
-    {
-        /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
-        $model = $this->getInstance('omnipay_library');
-
-        $instance = $model->getGatewayInstance('TwoCheckoutPlus');
-
-        if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
-            throw new \InvalidArgumentException('Object is not instance of Omnipay\TwoCheckoutPlus\Gateway');
-        }
-
-        return $instance;
-    }
-
-    /**
      * Implements hook "payment.methods"
      * @param array $methods
      */
@@ -122,25 +105,6 @@ class Twocheckout extends Module
             'title' => $this->getLanguage()->text('2 Checkout'),
             'template' => array('complete' => 'pay')
         );
-    }
-
-    /**
-     * Returns a module setting
-     * @param string $name
-     * @param mixed $default
-     * @return mixed
-     */
-    protected function setting($name, $default = null)
-    {
-        return $this->config->getFromModule('twocheckout', $name, $default);
-    }
-
-    /**
-     * Returns the current status of the payment method
-     */
-    protected function getStatus()
-    {
-        return $this->setting('status') && $this->setting('accountNumber') && $this->setting('secretWord');
     }
 
     /**
@@ -182,15 +146,57 @@ class Twocheckout extends Module
         $this->controller = $controller;
 
         if ($order['payment'] === 'twocheckout') {
-            $this->submit();
-            $this->complete();
+            $this->submitPayment();
+            $this->completePayment();
         }
+    }
+
+    /* ------------------------- API ------------------------- */
+
+    /**
+     * Get gateway instance
+     * @return object
+     * @throws \InvalidArgumentException
+     */
+    public function getGatewayInstance()
+    {
+        /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
+        $model = $this->getInstance('omnipay_library');
+
+        $instance = $model->getGatewayInstance('TwoCheckoutPlus');
+
+        if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
+            throw new \InvalidArgumentException('Object is not instance of Omnipay\TwoCheckoutPlus\Gateway');
+        }
+
+        return $instance;
+    }
+
+    /* ------------------------- Helpers ------------------------- */
+
+    /**
+     * Returns a module setting
+     * @param string $name
+     * @param mixed $default
+     * @return mixed
+     */
+    protected function getModuleSetting($name, $default = null)
+    {
+        return $this->config->getFromModule('twocheckout', $name, $default);
+    }
+
+    /**
+     * Returns the current status of the payment method
+     */
+    protected function getStatus()
+    {
+        return $this->getModuleSetting('status') && $this->getModuleSetting('accountNumber') && $this->getModuleSetting('secretWord');
     }
 
     /**
      * Performs actions when purchase is completed
      */
-    protected function complete()
+    protected function completePayment()
     {
         if ($this->controller->isQuery('paid')) {
             $gateway = $this->getGatewayInstance();
@@ -202,15 +208,15 @@ class Twocheckout extends Module
     /**
      * Handles submitted payment
      */
-    protected function submit()
+    protected function submitPayment()
     {
         if ($this->controller->isPosted('pay')) {
 
             $gateway = $this->getGatewayInstance();
-            $gateway->setDemoMode((bool) $this->setting('test'));
+            $gateway->setDemoMode((bool) $this->getModuleSetting('test'));
             $gateway->setCurrency($this->data_order['currency']);
-            $gateway->setSecretWord($this->setting('secretWord'));
-            $gateway->setAccountNumber($this->setting('accountNumber'));
+            $gateway->setSecretWord($this->getModuleSetting('secretWord'));
+            $gateway->setAccountNumber($this->getModuleSetting('accountNumber'));
 
             $gateway->setCart(array(array(
                     'quantity' => 1,
@@ -286,7 +292,7 @@ class Twocheckout extends Module
      */
     protected function updateOrderStatus()
     {
-        $data = array('status' => $this->setting('order_status_success'));
+        $data = array('status' => $this->getModuleSetting('order_status_success'));
         $this->order->update($this->data_order['order_id'], $data);
         $this->data_order = $this->order->get($this->data_order['order_id']);
     }

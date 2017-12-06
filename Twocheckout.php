@@ -10,7 +10,7 @@
 namespace gplcart\modules\twocheckout;
 
 use gplcart\core\Module,
-    gplcart\core\Config;
+    gplcart\core\Container;
 
 /**
  * Main class for 2 Checkout module
@@ -43,14 +43,18 @@ class Twocheckout extends Module
     protected $order;
 
     /**
-     * @param Config $config
+     * Module class instance
+     * @var \gplcart\core\Module $module
      */
-    public function __construct(Config $config)
-    {
-        parent::__construct($config);
-    }
+    protected $module;
 
-    /* ------------------------- Hooks ------------------------- */
+    /**
+     * @param Module $module
+     */
+    public function __construct(Module $module)
+    {
+        $this->module = $module;
+    }
 
     /**
      * Implements hook "route.list"
@@ -72,11 +76,7 @@ class Twocheckout extends Module
      */
     public function hookModuleEnableBefore(&$result)
     {
-        try {
-            $this->getGatewayInstance();
-        } catch (\InvalidArgumentException $ex) {
-            $result = $ex->getMessage();
-        }
+        $this->checkGateway($result);
     }
 
     /**
@@ -85,8 +85,17 @@ class Twocheckout extends Module
      */
     public function hookModuleInstallBefore(&$result)
     {
+        $this->checkGateway($result);
+    }
+
+    /**
+     * Check 2checkout gateway class is loaded
+     * @param mixed $result
+     */
+    protected function checkGateway(&$result)
+    {
         try {
-            $this->getGatewayInstance();
+            $this->getGateway();
         } catch (\InvalidArgumentException $ex) {
             $result = $ex->getMessage();
         }
@@ -101,8 +110,8 @@ class Twocheckout extends Module
         $methods['twocheckout'] = array(
             'module' => 'twocheckout',
             'image' => 'image/icon.png',
+            'title' => '2 Checkout',
             'status' => $this->getStatus(),
-            'title' => $this->getLanguage()->text('2 Checkout'),
             'template' => array('complete' => 'pay')
         );
     }
@@ -141,6 +150,17 @@ class Twocheckout extends Module
      */
     public function hookOrderCompletePage(array $order, $model, $controller)
     {
+        $this->setOrderCompletePage($order, $model, $controller);
+    }
+
+    /**
+     * Set order complete page
+     * @param array $order
+     * @param \gplcart\core\models\Order $model
+     * @param \gplcart\core\controllers\frontend\Controller $controller
+     */
+    protected function setOrderCompletePage(array $order, $model, $controller)
+    {
         $this->order = $model;
         $this->data_order = $order;
         $this->controller = $controller;
@@ -151,28 +171,23 @@ class Twocheckout extends Module
         }
     }
 
-    /* ------------------------- API ------------------------- */
-
     /**
      * Get gateway instance
-     * @return object
+     * @return \Omnipay\TwoCheckoutPlus\Gateway
      * @throws \InvalidArgumentException
      */
-    public function getGatewayInstance()
+    public function getGateway()
     {
-        /* @var $model \gplcart\modules\omnipay_library\OmnipayLibrary */
-        $model = $this->getInstance('omnipay_library');
+        /* @var $module \gplcart\modules\omnipay_library\OmnipayLibrary */
+        $module = $this->module->getInstance('omnipay_library');
+        $gateway = $module->getGatewayInstance('TwoCheckoutPlus');
 
-        $instance = $model->getGatewayInstance('TwoCheckoutPlus');
-
-        if (!$instance instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
+        if (!$gateway instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
             throw new \InvalidArgumentException('Object is not instance of Omnipay\TwoCheckoutPlus\Gateway');
         }
 
-        return $instance;
+        return $gateway;
     }
-
-    /* ------------------------- Helpers ------------------------- */
 
     /**
      * Returns a module setting
@@ -182,7 +197,7 @@ class Twocheckout extends Module
      */
     protected function getModuleSetting($name, $default = null)
     {
-        return $this->config->getFromModule('twocheckout', $name, $default);
+        return $this->module->getSettings('twocheckout', $name, $default);
     }
 
     /**
@@ -199,7 +214,7 @@ class Twocheckout extends Module
     protected function completePayment()
     {
         if ($this->controller->isQuery('paid')) {
-            $gateway = $this->getGatewayInstance();
+            $gateway = $this->getGateway();
             $this->response = $gateway->completePurchase($this->getPurchaseParams())->send();
             $this->processResponse();
         }
@@ -212,18 +227,20 @@ class Twocheckout extends Module
     {
         if ($this->controller->isPosted('pay')) {
 
-            $gateway = $this->getGatewayInstance();
+            $gateway = $this->getGateway();
             $gateway->setDemoMode((bool) $this->getModuleSetting('test'));
             $gateway->setCurrency($this->data_order['currency']);
             $gateway->setSecretWord($this->getModuleSetting('secretWord'));
             $gateway->setAccountNumber($this->getModuleSetting('accountNumber'));
 
-            $gateway->setCart(array(array(
+            $cart = array(array(
                     'quantity' => 1,
                     'type' => 'product',
                     'price' => $this->data_order['total_formatted_number'],
                     'name' => $this->controller->text('Order #@num', array('@num' => $this->data_order['order_id']))
-            )));
+            ));
+
+            $gateway->setCart($cart);
 
             $this->response = $gateway->purchase($this->getPurchaseParams())->send();
 
@@ -292,7 +309,9 @@ class Twocheckout extends Module
      */
     protected function updateOrderStatus()
     {
-        $data = array('status' => $this->getModuleSetting('order_status_success'));
+        $data = array(
+            'status' => $this->getModuleSetting('order_status_success'));
+
         $this->order->update($this->data_order['order_id'], $data);
         $this->data_order = $this->order->get($this->data_order['order_id']);
     }
@@ -303,6 +322,9 @@ class Twocheckout extends Module
      */
     protected function addTransaction()
     {
+        /* @var $model \gplcart\core\models\Transaction */
+        $model = Container::get('gplcart\\core\\models\\Transaction');
+
         $transaction = array(
             'total' => $this->data_order['total'],
             'order_id' => $this->data_order['order_id'],
@@ -311,9 +333,7 @@ class Twocheckout extends Module
             'gateway_transaction_id' => $this->response->getTransactionReference()
         );
 
-        /* @var $object \gplcart\core\models\Transaction */
-        $object = $this->getModel('Transaction');
-        return $object->add($transaction);
+        return $model->add($transaction);
     }
 
 }

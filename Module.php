@@ -9,13 +9,13 @@
 
 namespace gplcart\modules\twocheckout;
 
-use gplcart\core\Module,
-    gplcart\core\Container;
+use gplcart\core\Container,
+    gplcart\core\Module as CoreModule;
 
 /**
  * Main class for 2 Checkout module
  */
-class Twocheckout extends Module
+class Module
 {
 
     /**
@@ -49,9 +49,9 @@ class Twocheckout extends Module
     protected $module;
 
     /**
-     * @param Module $module
+     * @param CoreModule $module
      */
-    public function __construct(Module $module)
+    public function __construct(CoreModule $module)
     {
         $this->module = $module;
     }
@@ -86,19 +86,6 @@ class Twocheckout extends Module
     public function hookModuleInstallBefore(&$result)
     {
         $this->checkGateway($result);
-    }
-
-    /**
-     * Check 2checkout gateway class is loaded
-     * @param mixed $result
-     */
-    protected function checkGateway(&$result)
-    {
-        try {
-            $this->getGateway();
-        } catch (\InvalidArgumentException $ex) {
-            $result = $ex->getMessage();
-        }
     }
 
     /**
@@ -154,6 +141,19 @@ class Twocheckout extends Module
     }
 
     /**
+     * Check 2checkout gateway class is loaded
+     * @param mixed $result
+     */
+    protected function checkGateway(&$result)
+    {
+        try {
+            $this->getGateway();
+        } catch (\InvalidArgumentException $ex) {
+            $result = $ex->getMessage();
+        }
+    }
+
+    /**
      * Set order complete page
      * @param array $order
      * @param \gplcart\core\models\Order $model
@@ -178,7 +178,7 @@ class Twocheckout extends Module
      */
     public function getGateway()
     {
-        /* @var $module \gplcart\modules\omnipay_library\OmnipayLibrary */
+        /* @var $module \gplcart\modules\omnipay_library\Module */
         $module = $this->module->getInstance('omnipay_library');
         $gateway = $module->getGatewayInstance('TwoCheckoutPlus');
 

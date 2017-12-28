@@ -9,8 +9,10 @@
 
 namespace gplcart\modules\twocheckout;
 
+use Exception;
 use gplcart\core\Container,
     gplcart\core\Module as CoreModule;
+use gplcart\core\exceptions\Dependency as DependencyException;
 
 /**
  * Main class for 2 Checkout module
@@ -148,7 +150,7 @@ class Module
     {
         try {
             $this->getGateway();
-        } catch (\InvalidArgumentException $ex) {
+        } catch (Exception $ex) {
             $result = $ex->getMessage();
         }
     }
@@ -174,7 +176,7 @@ class Module
     /**
      * Get gateway instance
      * @return \Omnipay\TwoCheckoutPlus\Gateway
-     * @throws \InvalidArgumentException
+     * @throws DependencyException
      */
     public function getGateway()
     {
@@ -182,11 +184,11 @@ class Module
         $module = $this->module->getInstance('omnipay_library');
         $gateway = $module->getGatewayInstance('TwoCheckoutPlus');
 
-        if (!$gateway instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
-            throw new \InvalidArgumentException('Object is not instance of Omnipay\TwoCheckoutPlus\Gateway');
+        if ($gateway instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
+            return $gateway;
         }
 
-        return $gateway;
+        throw new DependencyException('Gateway must be instance of Omnipay\TwoCheckoutPlus\Gateway');
     }
 
     /**
@@ -205,7 +207,8 @@ class Module
      */
     protected function getStatus()
     {
-        return $this->getModuleSetting('status') && $this->getModuleSetting('accountNumber') && $this->getModuleSetting('secretWord');
+        return $this->getModuleSetting('status') && $this->getModuleSetting('accountNumber')//
+                && $this->getModuleSetting('secretWord');
     }
 
     /**

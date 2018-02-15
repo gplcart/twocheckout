@@ -10,9 +10,9 @@
 namespace gplcart\modules\twocheckout;
 
 use Exception;
-use gplcart\core\Module,
-    gplcart\core\Container;
-use gplcart\core\exceptions\Dependency as DependencyException;
+use gplcart\core\Module;
+use Omnipay\TwoCheckoutPlus\Gateway;
+use UnexpectedValueException;
 
 /**
  * Main class for 2 Checkout module
@@ -176,7 +176,7 @@ class Main
     /**
      * Get gateway instance
      * @return \Omnipay\TwoCheckoutPlus\Gateway
-     * @throws DependencyException
+     * @throws UnexpectedValueException
      */
     public function getGateway()
     {
@@ -184,11 +184,11 @@ class Main
         $module = $this->module->getInstance('omnipay_library');
         $gateway = $module->getGatewayInstance('TwoCheckoutPlus');
 
-        if ($gateway instanceof \Omnipay\TwoCheckoutPlus\Gateway) {
-            return $gateway;
+        if (!$gateway instanceof Gateway) {
+            throw new UnexpectedValueException('Gateway must be instance of Omnipay\TwoCheckoutPlus\Gateway');
         }
 
-        throw new DependencyException('Gateway must be instance of Omnipay\TwoCheckoutPlus\Gateway');
+        return $gateway;
     }
 
     /**
@@ -207,8 +207,9 @@ class Main
      */
     protected function getStatus()
     {
-        return $this->getModuleSetting('status') && $this->getModuleSetting('accountNumber')//
-                && $this->getModuleSetting('secretWord');
+        return $this->getModuleSetting('status')
+            && $this->getModuleSetting('accountNumber')
+            && $this->getModuleSetting('secretWord');
     }
 
     /**
@@ -237,10 +238,10 @@ class Main
             $gateway->setAccountNumber($this->getModuleSetting('accountNumber'));
 
             $cart = array(array(
-                    'quantity' => 1,
-                    'type' => 'product',
-                    'price' => $this->data_order['total_formatted_number'],
-                    'name' => $this->controller->text('Order #@num', array('@num' => $this->data_order['order_id']))
+                'quantity' => 1,
+                'type' => 'product',
+                'price' => $this->data_order['total_formatted_number'],
+                'name' => $this->controller->text('Order #@num', array('@num' => $this->data_order['order_id']))
             ));
 
             $gateway->setCart($cart);
@@ -312,8 +313,7 @@ class Main
      */
     protected function updateOrderStatus()
     {
-        $data = array(
-            'status' => $this->getModuleSetting('order_status_success'));
+        $data = array('status' => $this->getModuleSetting('order_status_success'));
 
         $this->order->update($this->data_order['order_id'], $data);
         $this->data_order = $this->order->get($this->data_order['order_id']);
@@ -326,7 +326,7 @@ class Main
     protected function addTransaction()
     {
         /* @var $model \gplcart\core\models\Transaction */
-        $model = Container::get('gplcart\\core\\models\\Transaction');
+        $model = gplcart_instance_model('Transaction');
 
         $transaction = array(
             'total' => $this->data_order['total'],
